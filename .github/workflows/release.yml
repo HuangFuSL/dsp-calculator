@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}-latest
+    needs: [publish]
+
+    strategy:
+      matrix:
+        os: [ubuntu, macos, windows]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+
+      - name: Build application
+        run: cargo build --profile dist
+
+      - name: Upload Release Asset (Linux & macOS)
+        if: matrix.os != 'windows'
+        run:
+          mv target/dist/dsp-calculator dsp-calculator-${{ matrix.os }} &&
+          gh release upload ${{ github.ref_name }} dsp-calculator-${{ matrix.os }} --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset (Windows)
+        if: matrix.os == 'windows'
+        run:
+          mv target/dist/dsp-calculator.exe dsp-calculator-${{ matrix.os }}.exe &&
+          gh release upload ${{ github.ref_name }} dsp-calculator-${{ matrix.os }}.exe --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 1
+
+      - name: Check if pre-release
+        id: prerelease_check
+        run: |
+          MAJOR_VERSION=$(echo "${{ github.ref }}" | sed -E 's/^refs\/tags\/v([0-9]+)\..*$/\1/')
+          if [[ $MAJOR_VERSION == "0" ]]; then
+            echo "Pre-release"
+            echo "::set-output name=is_prerelease::--prerelease"
+          else
+            echo "Not a pre-release"
+            echo "::set-output name=is_prerelease:: "
+          fi
+
+      - name: Create Release
+        id: create_release
+        run: |
+          gh release create ${{ github.ref }} \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            ${{ steps.prerelease_check.outputs.is_prerelease }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
