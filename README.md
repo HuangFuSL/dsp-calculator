@@ -1,6 +1,6 @@
 # dsp-calculator
 
-Desktop Dyson Sphere Program calculator
+**Desktop** Dyson Sphere Program calculator
 
 **⚠️⚠️Currently, this project is only in demo version. Most features have not been implemented yet.⚠️⚠️**
 
