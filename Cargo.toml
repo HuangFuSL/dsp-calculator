@@ -2,6 +2,12 @@
 name = "dsp-calculator"
 version = "0.1.0"
 edition = "2021"
+authors = ["HuangFuSL <huangfusl@outlook.com>"]
+description = "Dyson Sphere Program Calculator"
+license = "MIT"
+repository = "https://github.com/HuangFuSL/dsp-calculator"
+readme = "README.md"
+keywords = ["rust", "dyson sphere program"]
 
 [profile.dist]
 opt-level = 3
